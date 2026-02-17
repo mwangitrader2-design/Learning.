@@ -1,0 +1,271 @@
+"-- Create enum for user roles
+CREATE TYPE public.app_role AS ENUM ('student', 'teacher', 'admin');
+-- Create user_roles table (CRITICAL: roles must be in separate table for security)
+CREATE TABLE public.user_roles (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+    role app_role NOT NULL DEFAULT 'student',
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+    UNIQUE (user_id, role)
+);
+-- Create profiles table with full learning profile data
+CREATE TABLE public.profiles (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL UNIQUE,
+    email TEXT,
+    display_name TEXT,
+    avatar_url TEXT,
+    bio TEXT,
+    
+    -- Student-specific fields
+    grade_level TEXT,
+    subjects TEXT[],
+    school TEXT,
+    
+    -- Learning profile fields
+    learning_style TEXT, -- visual, auditory, reading/writing, kinesthetic
+    learning_goals TEXT[],
+    strengths TEXT[],
+    weaknesses TEXT[],
+    preferred_difficulty TEXT DEFAULT 'medium', -- easy, medium, hard
+    
+    -- Preferences
+    notification_preferences JSONB DEFAULT '{"email": true, "push": true}'::jsonb,
+    
+    -- Metadata
+    total_xp INTEGER DEFAULT 0,
+    current_streak INTEGER DEFAULT 0,
+    longest_streak INTEGER DEFAULT 0,
+    last_active_at TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
+);
+-- Create courses table
+CREATE TABLE public.courses (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    title TEXT NOT NULL,
+    description TEXT,
+    thumbnail_url TEXT,
+    category TEXT NOT NULL,
+    difficulty TEXT DEFAULT 'beginner', -- beginner, intermediate, advanced
+    duration_hours INTEGER DEFAULT 1,
+    total_lessons INTEGER DEFAULT 0,
+    instructor_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
+    is_published BOOLEAN DEFAULT false,
+    tags TEXT[],
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
+);
+-- Create user_progress table for tracking course progress
+CREATE TABLE public.user_progress (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+    course_id UUID REFERENCES public.courses(id) ON DELETE CASCADE NOT NULL,
+    completed_lessons INTEGER DEFAULT 0,
+    progress_percentage INTEGER DEFAULT 0,
+    quiz_scores JSONB DEFAULT '[]'::jsonb,
+    time_spent_minutes INTEGER DEFAULT 0,
+    started_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+    last_accessed_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+    completed_at TIMESTAMP WITH TIME ZONE,
+    UNIQUE (user_id, course_id)
+);
+-- Create ai_conversations table for AI tutor chat history
+CREATE TABLE public.ai_conversations (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+    course_id UUID REFERENCES public.courses(id) ON DELETE SET NULL,
+    title TEXT DEFAULT 'New Conversation',
+    messages JSONB DEFAULT '[]'::jsonb,
+    context JSONB DEFAULT '{}'::jsonb, -- stores learning context
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
+);
+-- Create achievements table
+CREATE TABLE public.achievements (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name TEXT NOT NULL,
+    description TEXT,
+    icon TEXT,
+    xp_reward INTEGER DEFAULT 0,
+    criteria JSONB DEFAULT '{}'::jsonb,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
+);
+-- Create user_achievements table
+CREATE TABLE public.user_achievements (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+    achievement_id UUID REFERENCES public.achievements(id) ON DELETE CASCADE NOT NULL,
+    earned_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+    UNIQUE (user_id, achievement_id)
+);
+-- Enable RLS on all tables
+ALTER TABLE public.user_roles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.courses ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.user_progress ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.ai_conversations ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.achievements ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.user_achievements ENABLE ROW LEVEL SECURITY;
+-- Security definer function to check roles (prevents RLS recursion)
+CREATE OR REPLACE FUNCTION public.has_role(_user_id UUID, _role app_role)
+RETURNS BOOLEAN
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+    SELECT EXISTS (
+        SELECT 1
+        FROM public.user_roles
+        WHERE user_id = _user_id
+          AND role = _role
+    )
+$$;
+-- Function to get user's primary role
+CREATE OR REPLACE FUNCTION public.get_user_role(_user_id UUID)
+RETURNS app_role
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+    SELECT role
+    FROM public.user_roles
+    WHERE user_id = _user_id
+    ORDER BY 
+        CASE role 
+            WHEN 'admin' THEN 1 
+            WHEN 'teacher' THEN 2 
+            WHEN 'student' THEN 3 
+        END
+    LIMIT 1
+$$;
+-- RLS Policies for user_roles
+CREATE POLICY "Users can view their own roles" ON public.user_roles
+    FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Admins can view all roles" ON public.user_roles
+    FOR SELECT USING (public.has_role(auth.uid(), 'admin'));
+CREATE POLICY "Admins can manage roles" ON public.user_roles
+    FOR ALL USING (public.has_role(auth.uid(), 'admin'));
+-- RLS Policies for profiles
+CREATE POLICY "Users can view their own profile" ON public.profiles
+    FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Teachers and admins can view all profiles" ON public.profiles
+    FOR SELECT USING (
+        public.has_role(auth.uid(), 'teacher') OR 
+        public.has_role(auth.uid(), 'admin')
+    );
+CREATE POLICY "Users can update their own profile" ON public.profiles
+    FOR UPDATE USING (auth.uid() = user_id);
+CREATE POLICY "Users can insert their own profile" ON public.profiles
+    FOR INSERT WITH CHECK (auth.uid() = user_id);
+-- RLS Policies for courses
+CREATE POLICY "Anyone can view published courses" ON public.courses
+    FOR SELECT USING (is_published = true);
+CREATE POLICY "Teachers can view their own courses" ON public.courses
+    FOR SELECT USING (auth.uid() = instructor_id);
+CREATE POLICY "Admins can view all courses" ON public.courses
+    FOR SELECT USING (public.has_role(auth.uid(), 'admin'));
+CREATE POLICY "Teachers can create courses" ON public.courses
+    FOR INSERT WITH CHECK (
+        public.has_role(auth.uid(), 'teacher') OR 
+        public.has_role(auth.uid(), 'admin')
+    );
+CREATE POLICY "Teachers can update their own courses" ON public.courses
+    FOR UPDATE USING (
+        auth.uid() = instructor_id OR 
+        public.has_role(auth.uid(), 'admin')
+    );
+-- RLS Policies for user_progress
+CREATE POLICY "Users can view their own progress" ON public.user_progress
+    FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Teachers can view student progress" ON public.user_progress
+    FOR SELECT USING (
+        public.has_role(auth.uid(), 'teacher') OR 
+        public.has_role(auth.uid(), 'admin')
+    );
+CREATE POLICY "Users can manage their own progress" ON public.user_progress
+    FOR ALL USING (auth.uid() = user_id);
+-- RLS Policies for ai_conversations
+CREATE POLICY "Users can manage their own conversations" ON public.ai_conversations
+    FOR ALL USING (auth.uid() = user_id);
+-- RLS Policies for achievements
+CREATE POLICY "Anyone can view achievements" ON public.achievements
+    FOR SELECT USING (true);
+CREATE POLICY "Admins can manage achievements" ON public.achievements
+    FOR ALL USING (public.has_role(auth.uid(), 'admin'));
+-- RLS Policies for user_achievements
+CREATE POLICY "Users can view their own achievements" ON public.user_achievements
+    FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "System can grant achievements" ON public.user_achievements
+    FOR INSERT WITH CHECK (auth.uid() = user_id);
+-- Trigger function to create profile and role on signup
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+    -- Create profile
+    INSERT INTO public.profiles (user_id, email, display_name)
+    VALUES (
+        NEW.id,
+        NEW.email,
+        COALESCE(NEW.raw_user_meta_data->>'display_name', split_part(NEW.email, '@', 1))
+    );
+    
+    -- Assign default student role
+    INSERT INTO public.user_roles (user_id, role)
+    VALUES (NEW.id, 'student');
+    
+    RETURN NEW;
+END;
+$$;
+-- Create trigger for new user signup
+CREATE TRIGGER on_auth_user_created
+    AFTER INSERT ON auth.users
+    FOR EACH ROW
+    EXECUTE FUNCTION public.handle_new_user();
+-- Function to update updated_at timestamp
+CREATE OR REPLACE FUNCTION public.update_updated_at_column()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SET search_path = public
+AS $$
+BEGIN
+    NEW.updated_at = now();
+    RETURN NEW;
+END;
+$$;
+-- Create triggers for updated_at
+CREATE TRIGGER update_profiles_updated_at
+    BEFORE UPDATE ON public.profiles
+    FOR EACH ROW
+    EXECUTE FUNCTION public.update_updated_at_column();
+CREATE TRIGGER update_courses_updated_at
+    BEFORE UPDATE ON public.courses
+    FOR EACH ROW
+    EXECUTE FUNCTION public.update_updated_at_column();
+CREATE TRIGGER update_user_progress_updated_at
+    BEFORE UPDATE ON public.user_progress
+    FOR EACH ROW
+    EXECUTE FUNCTION public.update_updated_at_column();
+CREATE TRIGGER update_ai_conversations_updated_at
+    BEFORE UPDATE ON public.ai_conversations
+    FOR EACH ROW
+    EXECUTE FUNCTION public.update_updated_at_column();
+
+Modified
+App.tsx
+
+Modified
+Sidebar.tsx
+
+Modified
+src/integrations/supabase/types.ts
+
+
+"
+ 
