@@ -1,0 +1,462 @@
+"<ProgressPrimitive.Root
+    ref={ref}
+    className={cn("relative h-4 w-full overflow-hidden rounded-full bg-secondary", className)}
+    className={cn("relative h-3 w-full overflow-hidden rounded-full bg-secondary", className)}
+    {...props}
+  >
+    <ProgressPrimitive.Indicator
+      className="h-full w-full flex-1 bg-primary transition-all"
+      className="h-full w-full flex-1 gradient-progress transition-all duration-500 ease-out"
+      style={{ transform: `translateX(-${100 - (value || 0)}%)` }}
+    />
+
+Modified
+index.css
+View file
+
+@tailwind utilities;
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+All colors MUST be HSL.
+*/
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --background: 210 40% 98%;
+    --foreground: 222 47% 11%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 222 47% 11%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --popover-foreground: 222 47% 11%;
+    --primary: 222.2 47.4% 11.2%;
+    --primary-foreground: 210 40% 98%;
+    --primary: 174 72% 40%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222 47% 11%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 16 85% 60%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --success: 142 71% 45%;
+    --success-foreground: 0 0% 100%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 222.2 84% 4.9%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
+    --radius: 0.5rem;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 174 72% 40%;
+    --radius: 1rem;
+    /* Custom gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(174, 72%, 40%) 0%, hsl(186, 72%, 45%) 100%);
+    --gradient-accent: linear-gradient(135deg, hsl(16, 85%, 60%) 0%, hsl(28, 85%, 55%) 100%);
+    --gradient-hero: linear-gradient(135deg, hsl(174, 72%, 35%) 0%, hsl(200, 72%, 45%) 50%, hsl(186, 72%, 40%) 100%);
+    --gradient-card: linear-gradient(180deg, hsl(0, 0%, 100%) 0%, hsl(210, 40%, 98%) 100%);
+    --gradient-progress: linear-gradient(90deg, hsl(174, 72%, 40%) 0%, hsl(142, 71%, 45%) 100%);
+    /* Shadows */
+    --shadow-sm: 0 1px 2px 0 hsl(222 47% 11% / 0.05);
+    --shadow-md: 0 4px 6px -1px hsl(222 47% 11% / 0.1), 0 2px 4px -2px hsl(222 47% 11% / 0.1);
+    --shadow-lg: 0 10px 15px -3px hsl(222 47% 11% / 0.1), 0 4px 6px -4px hsl(222 47% 11% / 0.1);
+    --shadow-xl: 0 20px 25px -5px hsl(222 47% 11% / 0.1), 0 8px 10px -6px hsl(222 47% 11% / 0.1);
+    --shadow-glow: 0 0 20px hsl(174, 72%, 40%, 0.3);
+    --shadow-accent-glow: 0 0 20px hsl(16, 85%, 60%, 0.3);
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --background: 222 47% 8%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card: 222 47% 11%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover: 222 47% 11%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary: 174 72% 50%;
+    --primary-foreground: 222 47% 11%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary: 217 33% 17%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 217 33% 17%;
+    --muted-foreground: 215 20% 65%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --accent: 16 85% 60%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 62.8% 30.6%;
+    --success: 142 71% 45%;
+    --success-foreground: 0 0% 100%;
+    --destructive: 0 63% 31%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
+    --border: 217 33% 17%;
+    --input: 217 33% 17%;
+    --ring: 174 72% 50%;
+    --gradient-primary: linear-gradient(135deg, hsl(174, 72%, 50%) 0%, hsl(186, 72%, 55%) 100%);
+    --gradient-hero: linear-gradient(135deg, hsl(174, 72%, 45%) 0%, hsl(200, 72%, 55%) 50%, hsl(186, 72%, 50%) 100%);
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+  body {
+    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans antialiased;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-bold tracking-tight;
+  }
+}
+@layer components {
+  .gradient-primary {
+    background: var(--gradient-primary);
+  }
+  .gradient-accent {
+    background: var(--gradient-accent);
+  }
+  .gradient-hero {
+    background: var(--gradient-hero);
+  }
+  .gradient-progress {
+    background: var(--gradient-progress);
+  }
+  .shadow-glow {
+    box-shadow: var(--shadow-glow);
+  }
+  .shadow-accent-glow {
+    box-shadow: var(--shadow-accent-glow);
+  }
+  .card-hover {
+    @apply transition-all duration-300 ease-out;
+  }
+  .card-hover:hover {
+    @apply -translate-y-1;
+    box-shadow: var(--shadow-xl);
+  }
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
+  }
+  .animate-pulse-slow {
+    animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+  .animate-gradient {
+    background-size: 200% 200%;
+    animation: gradient 3s ease infinite;
+  }
+}
+@layer utilities {
+  .text-gradient-primary {
+    @apply bg-clip-text text-transparent;
+    background-image: var(--gradient-primary);
+  }
+  .text-gradient-accent {
+    @apply bg-clip-text text-transparent;
+    background-image: var(--gradient-accent);
+  }
+}
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+@keyframes gradient {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+Modified
+src/pages/Index.tsx
+View file
+
+// Update this page (the content is just a fallback if you fail to update the page)
+import { MainLayout } from "@/components/layout/MainLayout";
+import { StatsCard } from "@/components/dashboard/StatsCard";
+import { ProgressRing } from "@/components/dashboard/ProgressRing";
+import { CourseCard } from "@/components/dashboard/CourseCard";
+import { AITutorWidget } from "@/components/dashboard/AITutorWidget";
+import { QuizWidget } from "@/components/dashboard/QuizWidget";
+import { ActivityFeed } from "@/components/dashboard/ActivityFeed";
+import { LeaderboardWidget } from "@/components/dashboard/LeaderboardWidget";
+import {
+  BookOpen,
+  Clock,
+  Flame,
+  Target,
+  TrendingUp,
+  Sparkles,
+} from "lucide-react";
+const Index = () => {
+const courses = [
+  {
+    title: "Advanced JavaScript",
+    description: "Master modern JavaScript including ES6+, async/await, and advanced patterns",
+    progress: 68,
+    lessons: 24,
+    duration: "8h 30m",
+    image: "https://images.unsplash.com/photo-1627398242454-45a1465c2479?w=400&h=300&fit=crop",
+    category: "Programming",
+  },
+  {
+    title: "Data Structures & Algorithms",
+    description: "Learn essential computer science concepts for technical interviews",
+    progress: 45,
+    lessons: 32,
+    duration: "12h 15m",
+    image: "https://images.unsplash.com/photo-1509228468518-180dd4864904?w=400&h=300&fit=crop",
+    category: "Computer Science",
+    isNew: true,
+  },
+  {
+    title: "Machine Learning Basics",
+    description: "Introduction to ML concepts, algorithms, and practical applications",
+    progress: 20,
+    lessons: 18,
+    duration: "6h 45m",
+    image: "https://images.unsplash.com/photo-1677442136019-21780ecad995?w=400&h=300&fit=crop",
+    category: "AI & ML",
+  },
+];
+export default function Index() {
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-background">
+      <div className="text-center">
+        <h1 className="mb-4 text-4xl font-bold">Welcome to Your Blank App</h1>
+        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
+      </div>
+    </div>
+  );
+};
+    <MainLayout>
+      <div className="space-y-8">
+        {/* Header */}
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-foreground">
+              Welcome back, <span className="text-gradient-primary">Alex</span>! 👋
+            </h1>
+            <p className="mt-1 text-muted-foreground">
+              You're making great progress. Keep up the amazing work!
+            </p>
+          </div>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 rounded-xl bg-warning/10 px-4 py-2">
+              <Flame className="h-5 w-5 text-warning" />
+              <span className="font-bold text-warning">7 Day Streak!</span>
+            </div>
+          </div>
+        </div>
+export default Index;
+        {/* Stats Grid */}
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <StatsCard
+            title="Courses in Progress"
+            value={5}
+            subtitle="2 near completion"
+            icon={BookOpen}
+            variant="primary"
+          />
+          <StatsCard
+            title="Total Learning Time"
+            value="42h"
+            subtitle="This month"
+            icon={Clock}
+            trend={{ value: 15, isPositive: true }}
+            variant="default"
+          />
+          <StatsCard
+            title="Current Streak"
+            value="7 days"
+            subtitle="Personal best: 14"
+            icon={Flame}
+            variant="accent"
+          />
+          <StatsCard
+            title="Weekly Goal"
+            value="85%"
+            subtitle="5h 6m / 6h"
+            icon={Target}
+            variant="success"
+          />
+        </div>
+        {/* Main Content Grid */}
+        <div className="grid gap-6 lg:grid-cols-3">
+          {/* Left Column - Progress & Courses */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Overall Progress */}
+            <div className="rounded-2xl bg-card border border-border/50 shadow-md p-6">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-6">
+                <ProgressRing progress={72} size={140} label="Overall" />
+                <div className="flex-1 space-y-4">
+                  <div>
+                    <h3 className="text-lg font-bold text-foreground">
+                      Your Learning Journey
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      You've completed 72% of your learning goals this month
+                    </p>
+                  </div>
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="text-center">
+                      <p className="text-2xl font-bold text-foreground">156</p>
+                      <p className="text-xs text-muted-foreground">Lessons Done</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-2xl font-bold text-foreground">24</p>
+                      <p className="text-xs text-muted-foreground">Quizzes Passed</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-2xl font-bold text-primary">13,750</p>
+                      <p className="text-xs text-muted-foreground">Total XP</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            {/* Continue Learning */}
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-bold text-foreground">
+                  Continue Learning
+                </h2>
+                <button className="text-sm font-medium text-primary hover:underline">
+                  View All Courses
+                </button>
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {courses.map((course) => (
+                  <CourseCard key={course.title} {...course} />
+                ))}
+              </div>
+            </div>
+          </div>
+          {/* Right Column - Widgets */}
+          <div className="space-y-6">
+            <AITutorWidget />
+            <QuizWidget />
+          </div>
+        </div>
+        {/* Bottom Row */}
+        <div className="grid gap-6 lg:grid-cols-2">
+          <ActivityFeed />
+          <LeaderboardWidget />
+        </div>
+      </div>
+    </MainLayout>
+  );
+}
+
+Modified
+tailwind.config.ts
+View file
+
+    },
+    extend: {
+      fontFamily: {
+        sans: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+      },
+      colors: {
+        border: "hsl(var(--border))",
+          foreground: "hsl(var(--accent-foreground))",
+        },
+        success: {
+          DEFAULT: "hsl(var(--success))",
+          foreground: "hsl(var(--success-foreground))",
+        },
+        warning: {
+          DEFAULT: "hsl(var(--warning))",
+          foreground: "hsl(var(--warning-foreground))",
+        },
+        popover: {
+          DEFAULT: "hsl(var(--popover))",
+        md: "calc(var(--radius) - 2px)",
+        sm: "calc(var(--radius) - 4px)",
+        xl: "calc(var(--radius) + 4px)",
+        "2xl": "calc(var(--radius) + 8px)",
+      },
+      keyframes: {
+        "accordion-down": {
+          from: {
+            height: "0",
+          },
+          to: {
+            height: "var(--radix-accordion-content-height)",
+          },
+          from: { height: "0" },
+          to: { height: "var(--radix-accordion-content-height)" },
+        },
+        "accordion-up": {
+          from: {
+            height: "var(--radix-accordion-content-height)",
+          },
+          to: {
+            height: "0",
+          },
+          from: { height: "var(--radix-accordion-content-height)" },
+          to: { height: "0" },
+        },
+        "fade-in": {
+          from: { opacity: "0", transform: "translateY(10px)" },
+          to: { opacity: "1", transform: "translateY(0)" },
+        },
+        "slide-in-right": {
+          from: { opacity: "0", transform: "translateX(20px)" },
+          to: { opacity: "1", transform: "translateX(0)" },
+        },
+        "scale-in": {
+          from: { opacity: "0", transform: "scale(0.95)" },
+          to: { opacity: "1", transform: "scale(1)" },
+        },
+        "bounce-subtle": {
+          "0%, 100%": { transform: "translateY(0)" },
+          "50%": { transform: "translateY(-5px)" },
+        },
+      },
+        "accordion-down": "accordion-down 0.2s ease-out",
+        "accordion-up": "accordion-up 0.2s ease-out",
+        "fade-in": "fade-in 0.5s ease-out forwards",
+        "slide-in-right": "slide-in-right 0.5s ease-out forwards",
+        "scale-in": "scale-in 0.3s ease-out forwards",
+        "bounce-subtle": "bounce-subtle 2s ease-in-out infinite",
+      },
+    },
+
+
+"
+ https://lovable.dev/projects/b983268f-c660-47a5-a0f1-4d56f16fd308#:~:text=%3CProgressPrimitive.,Details
